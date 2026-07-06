@@ -8,7 +8,7 @@
 (() => {
   "use strict";
 
-  const CACHE_PREFIX = "ghperm:v2:";
+  const CACHE_PREFIX = "ghperm:v3:";
   const APPLICATIONS_PATH = "/settings/applications";
   const FEATURE_ENABLED_KEY = "ghpermEnabled";
   const DEFAULT_ENABLED = true;
@@ -25,6 +25,8 @@
     /ssh key|gpg key|deploy key|public key/i,
     /package/i,
     /personal access token/i,
+    /act on your behalf/i,
+    /\bmanage\b/i,
   ];
 
   const normalizeText = (text) => text.replace(/\s+/g, " ").trim();
@@ -99,6 +101,8 @@
       ),
     );
 
+  const stripTrailingPeriod = (text) => text.replace(/\.$/, "");
+
   const permissionSectionMarkup = (html) => {
     const heading = /<h[1-6][^>]*>\s*Permissions\s*<\/h[1-6]>/i.exec(html);
     if (!heading) return "";
@@ -131,7 +135,36 @@
       if (text && !/revoke access/i.test(text)) titles.push(text);
     }
 
+    if (titles.length === 0) {
+      const listItemPattern = /<li\b[^>]*>([\s\S]*?)<\/li>/gi;
+      for (const match of section.matchAll(listItemPattern)) {
+        const text = htmlToText(match[1]);
+        if (text) titles.push(text);
+      }
+    }
+
     return unique(titles);
+  }
+
+  /**
+   * Extracts the GitHub App installation summary from a detail page.
+   * @param {string} html - GitHub's app detail page HTML.
+   * @returns {string} Installation summary, or an empty string.
+   */
+  function extractInstallSummaryFromMarkup(html) {
+    const section = permissionSectionMarkup(html);
+    if (!section) return "";
+
+    const summaryPattern = /<p\b[^>]*>([\s\S]*?(?:has been installed on|has not been installed on)[\s\S]*?)<\/p>/i;
+    const match = summaryPattern.exec(section);
+    if (!match) return "";
+
+    const text = stripTrailingPeriod(htmlToText(match[1])).replace(/\s+([,.:;])/g, "$1");
+    const installedTo = text.match(/has been installed on \d+ accounts you have access to:\s*(.+)$/i);
+    if (installedTo) return `Installed to: ${installedTo[1]}.`;
+
+    if (/has not been installed on any accounts you have access to/i.test(text)) return "No installs.";
+    return `${text}.`;
   }
 
   const isAfter = (earlier, later) => Boolean(earlier.compareDocumentPosition(later) & 4);
@@ -184,16 +217,23 @@
     return extractPermissionTextsFromDocument(doc);
   }
 
+  function parsePermissionDetails(html) {
+    return {
+      permissions: parsePermissions(html),
+      installSummary: extractInstallSummaryFromMarkup(html),
+    };
+  }
+
   async function fetchPerms(url) {
     const id = url.split("/").pop();
     const cached = cacheGet(id);
-    if (cached) return cached;
+    if (cached) return Array.isArray(cached) ? { permissions: cached, installSummary: "" } : cached;
     const res = await fetch(url, { credentials: "include" });
     if (!res.ok) throw new Error("HTTP " + res.status);
-    const perms = parsePermissions(await res.text());
-    if (perms.length === 0) throw new Error("No permissions found on detail page");
-    cacheSet(id, perms);
-    return perms;
+    const details = parsePermissionDetails(await res.text());
+    if (details.permissions.length === 0) throw new Error("No permissions found on detail page");
+    cacheSet(id, details);
+    return details;
   }
 
   // --- find the full row element for an app link ---
@@ -261,6 +301,13 @@
     return item;
   };
 
+  const makeSummaryItem = (text) => {
+    const item = document.createElement("div");
+    item.className = "p-0 mt-2 text-small color-fg-muted";
+    item.textContent = text;
+    return item;
+  };
+
   const getOrCreateBlock = (row) => {
     if (!row) return null;
 
@@ -274,11 +321,15 @@
     return box;
   };
 
-  function render(row, perms) {
+  function render(row, details) {
     const box = getOrCreateBlock(row);
     if (!box) return;
+    const permissions = Array.isArray(details) ? details : details.permissions;
+    const installSummary = Array.isArray(details) ? "" : details.installSummary;
+
     box.replaceChildren();
-    perms.forEach((p) => box.appendChild(makePermissionItem(p)));
+    permissions.forEach((p) => box.appendChild(makePermissionItem(p)));
+    if (installSummary) box.appendChild(makeSummaryItem(installSummary));
   }
 
   function renderMessage(row, message) {
@@ -301,10 +352,12 @@
       DANGEROUS_PERMISSION_ITEM_CLASS,
       FEATURE_ENABLED_KEY,
       PERMISSION_ITEM_CLASS,
+      extractInstallSummaryFromMarkup,
       extractPermissionTextsFromMarkup,
       featureEnabled,
       isApplicationsPath,
       isDangerousPermission,
+      parsePermissionDetails,
       parsePermissions,
     };
   }

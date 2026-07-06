@@ -7,6 +7,7 @@ const {
   DANGEROUS_PERMISSION_ITEM_CLASS,
   FEATURE_ENABLED_KEY,
   PERMISSION_ITEM_CLASS,
+  extractInstallSummaryFromMarkup,
   extractPermissionTextsFromMarkup,
   isApplicationsPath,
   isDangerousPermission,
@@ -46,6 +47,8 @@ test("detects dangerous permission labels", () => {
   assert.equal(isDangerousPermission("Update github action workflows"), true);
   assert.equal(isDangerousPermission("Read org and team membership, read org projects"), true);
   assert.equal(isDangerousPermission("Delete repositories"), true);
+  assert.equal(isDangerousPermission("Act on your behalf"), true);
+  assert.equal(isDangerousPermission("View and manage your starred repositories"), true);
   assert.equal(isDangerousPermission("Access user email addresses (read-only)"), false);
   assert.equal(isDangerousPermission("Read all user profile data"), false);
 });
@@ -143,4 +146,49 @@ test("does not stop before permission rows when GitHub inserts a dialog heading"
     "Read all user profile data",
     "Access user email addresses (read-only)",
   ]);
+});
+
+test("extracts Authorized GitHub App permission bullets from the detail page", () => {
+  const html = `
+    <h2>Permissions</h2>
+    <p><strong>Arcade.dev</strong> can access your account <strong>coderberry</strong> to:</p>
+    <ul>
+      <li>Verify your GitHub identity</li>
+      <li>Know what resources you can access</li>
+      <li>Act on your behalf</li>
+      <li>View your email addresses</li>
+      <li>View and manage your starred repositories</li>
+      <li>View and manage your watched repositories</li>
+    </ul>
+    <p>Arcade.dev has not been installed on any accounts you have access to.</p>
+    <p>Applications act on your behalf to access your data.</p>
+  `;
+
+  assert.deepEqual(extractPermissionTextsFromMarkup(html), [
+    "Verify your GitHub identity",
+    "Know what resources you can access",
+    "Act on your behalf",
+    "View your email addresses",
+    "View and manage your starred repositories",
+    "View and manage your watched repositories",
+  ]);
+});
+
+test("extracts Authorized GitHub App install summary from the detail page", () => {
+  const html = `
+    <h2>Permissions</h2>
+    <p><strong>ChatGPT Codex Connector</strong> can access your account <strong>coderberry</strong> to:</p>
+    <ul>
+      <li>Verify your GitHub identity</li>
+      <li>Act on your behalf</li>
+      <li>View your email addresses</li>
+    </ul>
+    <p>ChatGPT Codex Connector has been installed on 9 accounts you have access to: <strong>abuiles</strong>, <strong>bercastle</strong>, <strong>berrydev-ai</strong>, <strong>giraffemedia</strong>, <strong>knomedia</strong>, and more.</p>
+    <p>Applications act on your behalf to access your data.</p>
+  `;
+
+  assert.equal(
+    extractInstallSummaryFromMarkup(html),
+    "Installed to: abuiles, bercastle, berrydev-ai, giraffemedia, knomedia, and more.",
+  );
 });

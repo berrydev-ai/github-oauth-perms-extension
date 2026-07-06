@@ -1,7 +1,7 @@
-# GitHub OAuth Apps — Inline Permissions
+# GitHub Authorized Apps — Inline Permissions
 
-A tiny Chrome/Arc extension that augments **Settings → Applications → Authorized OAuth Apps**
-so each app shows its **permissions (scopes) inline**.
+A tiny Chrome/Arc extension that augments **Settings → Applications** so authorized
+OAuth apps and authorized GitHub apps show their **permissions inline**.
 
 It is **read-only**: it fetches each app's own detail page using your logged-in session and
 displays the permissions. It never revokes or changes anything.
@@ -20,7 +20,7 @@ displays the permissions. It never revokes or changes anything.
 ## Enable or disable
 
 Click the extension icon and use **Show permissions** to turn the inline permissions
-list on or off without disabling the whole extension.
+lists on or off without disabling the whole extension.
 
 ## What the markers mean
 
