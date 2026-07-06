@@ -8,14 +8,15 @@
 (() => {
   "use strict";
 
-  const CACHE_PREFIX = "ghperm:v3:";
+  const CACHE_PREFIX = "ghperm:v4:";
   const APPLICATIONS_PATH = "/settings/applications";
   const AUTHORIZED_GITHUB_APPS_PATH = "/settings/apps/authorizations";
   const SUPPORTED_APPLICATIONS_PATHS = [APPLICATIONS_PATH, AUTHORIZED_GITHUB_APPS_PATH];
   const FEATURE_ENABLED_KEY = "ghpermEnabled";
   const DEFAULT_ENABLED = true;
-  const PERMISSION_ITEM_CLASS = "p-0 listgroup-item border-0";
+  const PERMISSION_ITEM_CLASS = "p-0 listgroup-item border-0 wb-break-word ws-normal";
   const DANGEROUS_PERMISSION_ITEM_CLASS = `${PERMISSION_ITEM_CLASS} color-fg-danger text-bold`;
+  const INSTALL_SUMMARY_ITEM_CLASS = "p-0 mt-2 text-small color-fg-muted wb-break-word ws-normal";
   const DANGEROUS_PERMISSION_PATTERNS = [
     /private repositor/i,
     /full control/i,
@@ -110,6 +111,9 @@
 
   const stripTrailingPeriod = (text) => text.replace(/\.$/, "");
 
+  const cleanPermissionText = (text) =>
+    normalizeText(text.replace(/\s+[^.?!]*\bcan access your account\b[\s\S]*$/i, ""));
+
   const permissionSectionMarkup = (html) => {
     const heading = /<h[1-6][^>]*>\s*Permissions\s*<\/h[1-6]>/i.exec(html);
     if (!heading) return "";
@@ -124,6 +128,13 @@
     return boundary === undefined ? afterHeading : afterHeading.slice(0, boundary);
   };
 
+  const installSummaryParagraphMarkup = (section) => {
+    const summaryPattern =
+      /<p\b[^>]*>((?:(?!<\/p>)[\s\S])*(?:has been installed on|has not been installed on)(?:(?!<\/p>)[\s\S])*)<\/p>/i;
+    const match = summaryPattern.exec(section);
+    return match ? match[1] : "";
+  };
+
   /**
    * Extracts the exact visible permission labels from a GitHub OAuth app detail page.
    * @param {string} html - GitHub's OAuth app detail page HTML.
@@ -135,10 +146,10 @@
 
     const titles = [];
     const checkIconPattern =
-      /<svg\b(?=[^>]*\bocticon-check\b)[^>]*>[\s\S]*?<\/svg>([\s\S]*?)(?=<svg\b(?=[^>]*\bocticon-check\b)|Applications act on your behalf|<h[1-6]\b|$)/gi;
+      /<svg\b(?=[^>]*\bocticon-check\b)[^>]*>[\s\S]*?<\/svg>([\s\S]*?)(?=<svg\b(?=[^>]*\bocticon-check\b)|<p\b[^>]*>[\s\S]*?(?:\bcan access your account\b[\s\S]*?\bto:|has been installed on|has not been installed on)[\s\S]*?<\/p>|Applications act on your behalf|<h[1-6]\b|$)/gi;
 
     for (const match of section.matchAll(checkIconPattern)) {
-      const text = htmlToText(match[1]);
+      const text = cleanPermissionText(htmlToText(match[1]));
       if (text && !/revoke access/i.test(text)) titles.push(text);
     }
 
@@ -162,16 +173,34 @@
     const section = permissionSectionMarkup(html);
     if (!section) return "";
 
-    const summaryPattern = /<p\b[^>]*>([\s\S]*?(?:has been installed on|has not been installed on)[\s\S]*?)<\/p>/i;
-    const match = summaryPattern.exec(section);
-    if (!match) return "";
+    const summaryMarkup = installSummaryParagraphMarkup(section);
+    if (!summaryMarkup) return "";
 
-    const text = stripTrailingPeriod(htmlToText(match[1])).replace(/\s+([,.:;])/g, "$1");
+    const text = stripTrailingPeriod(htmlToText(summaryMarkup)).replace(/\s+([,.:;])/g, "$1");
     const installedTo = text.match(/has been installed on \d+ accounts you have access to:\s*(.+)$/i);
     if (installedTo) return `Installed to: ${installedTo[1]}.`;
 
     if (/has not been installed on any accounts you have access to/i.test(text)) return "No installs.";
     return `${text}.`;
+  }
+
+  /**
+   * Extracts installed account names from a GitHub App detail page.
+   * @param {string} html - GitHub's app detail page HTML.
+   * @returns {string[]} Installed account names in page order.
+   */
+  function extractInstalledAccountNamesFromMarkup(html) {
+    const section = permissionSectionMarkup(html);
+    if (!section) return [];
+
+    const summaryMarkup = installSummaryParagraphMarkup(section);
+    if (!summaryMarkup || !/has been installed on/i.test(summaryMarkup)) return [];
+
+    return unique(
+      [...summaryMarkup.matchAll(/<strong\b[^>]*>([\s\S]*?)<\/strong>/gi)].map((strongMatch) =>
+        htmlToText(strongMatch[1]),
+      ),
+    );
   }
 
   const isAfter = (earlier, later) => Boolean(earlier.compareDocumentPosition(later) & 4);
@@ -228,13 +257,18 @@
     return {
       permissions: parsePermissions(html),
       installSummary: extractInstallSummaryFromMarkup(html),
+      installAccountNames: extractInstalledAccountNamesFromMarkup(html),
     };
   }
 
   async function fetchPerms(url) {
     const id = url.split("/").pop();
     const cached = cacheGet(id);
-    if (cached) return Array.isArray(cached) ? { permissions: cached, installSummary: "" } : cached;
+    if (cached) {
+      return Array.isArray(cached)
+        ? { permissions: cached, installSummary: "", installAccountNames: [] }
+        : { installAccountNames: [], ...cached };
+    }
     const res = await fetch(url, { credentials: "include" });
     if (!res.ok) throw new Error("HTTP " + res.status);
     const details = parsePermissionDetails(await res.text());
@@ -308,10 +342,29 @@
     return item;
   };
 
-  const makeSummaryItem = (text) => {
+  const appendBoldedNames = (item, text, names) => {
+    let offset = 0;
+    for (const name of names) {
+      const index = text.indexOf(name, offset);
+      if (index < 0) continue;
+      item.append(document.createTextNode(text.slice(offset, index)));
+      const strong = document.createElement("strong");
+      strong.className = "text-bold";
+      strong.textContent = name;
+      item.append(strong);
+      offset = index + name.length;
+    }
+    item.append(document.createTextNode(text.slice(offset)));
+  };
+
+  const makeSummaryItem = (text, names = []) => {
     const item = document.createElement("div");
-    item.className = "p-0 mt-2 text-small color-fg-muted";
-    item.textContent = text;
+    item.className = INSTALL_SUMMARY_ITEM_CLASS;
+    if (names.length > 0) {
+      appendBoldedNames(item, text, names);
+    } else {
+      item.textContent = text;
+    }
     return item;
   };
 
@@ -322,7 +375,7 @@
     if (existing) return existing;
 
     const box = document.createElement("div");
-    box.className = "pt-2";
+    box.className = "pt-2 wb-break-word ws-normal";
     box.dataset.ghpermBlock = "1";
     row.appendChild(box);
     return box;
@@ -333,10 +386,11 @@
     if (!box) return;
     const permissions = Array.isArray(details) ? details : details.permissions;
     const installSummary = Array.isArray(details) ? "" : details.installSummary;
+    const installAccountNames = Array.isArray(details) ? [] : details.installAccountNames || [];
 
     box.replaceChildren();
     permissions.forEach((p) => box.appendChild(makePermissionItem(p)));
-    if (installSummary) box.appendChild(makeSummaryItem(installSummary));
+    if (installSummary) box.appendChild(makeSummaryItem(installSummary, installAccountNames));
   }
 
   function renderMessage(row, message) {
@@ -358,7 +412,9 @@
       DEFAULT_ENABLED,
       DANGEROUS_PERMISSION_ITEM_CLASS,
       FEATURE_ENABLED_KEY,
+      INSTALL_SUMMARY_ITEM_CLASS,
       PERMISSION_ITEM_CLASS,
+      extractInstalledAccountNamesFromMarkup,
       extractInstallSummaryFromMarkup,
       extractPermissionTextsFromMarkup,
       featureEnabled,

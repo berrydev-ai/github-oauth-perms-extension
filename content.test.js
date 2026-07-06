@@ -6,7 +6,9 @@ const {
   DEFAULT_ENABLED,
   DANGEROUS_PERMISSION_ITEM_CLASS,
   FEATURE_ENABLED_KEY,
+  INSTALL_SUMMARY_ITEM_CLASS,
   PERMISSION_ITEM_CLASS,
+  extractInstalledAccountNamesFromMarkup,
   extractInstallSummaryFromMarkup,
   extractPermissionTextsFromMarkup,
   isApplicationsPath,
@@ -39,8 +41,9 @@ test("feature toggle defaults to enabled", () => {
 });
 
 test("permission rows use GitHub's no-border utility", () => {
-  assert.equal(PERMISSION_ITEM_CLASS, "p-0 listgroup-item border-0");
-  assert.equal(DANGEROUS_PERMISSION_ITEM_CLASS, "p-0 listgroup-item border-0 color-fg-danger text-bold");
+  assert.equal(PERMISSION_ITEM_CLASS, "p-0 listgroup-item border-0 wb-break-word ws-normal");
+  assert.equal(DANGEROUS_PERMISSION_ITEM_CLASS, "p-0 listgroup-item border-0 wb-break-word ws-normal color-fg-danger text-bold");
+  assert.equal(INSTALL_SUMMARY_ITEM_CLASS, "p-0 mt-2 text-small color-fg-muted wb-break-word ws-normal");
 });
 
 test("detects dangerous permission labels", () => {
@@ -192,4 +195,33 @@ test("extracts Authorized GitHub App install summary from the detail page", () =
     extractInstallSummaryFromMarkup(html),
     "Installed to: abuiles, bercastle, berrydev-ai, giraffemedia, knomedia, and more.",
   );
+  assert.deepEqual(extractInstalledAccountNamesFromMarkup(html), [
+    "abuiles",
+    "bercastle",
+    "berrydev-ai",
+    "giraffemedia",
+    "knomedia",
+  ]);
+});
+
+test("does not combine checked GitHub App permissions with the account access list", () => {
+  const html = `
+    <h2>Permissions</h2>
+    <div>
+      <svg class="octicon octicon-check color-fg-success" aria-hidden="true"></svg>
+      This application will receive your GitHub ID, your GitHub Copilot Chat session messages, and metadata from GitHub.
+    </div>
+    <p><strong>Metis Dev Assistant Integration</strong> can access your account <strong>coderberry</strong> to:</p>
+    <ul>
+      <li>Verify your GitHub identity</li>
+      <li>Know what resources you can access</li>
+      <li>Act on your behalf</li>
+    </ul>
+    <p>Metis Dev Assistant Integration has not been installed on any accounts you have access to.</p>
+    <p>Applications act on your behalf to access your data.</p>
+  `;
+
+  assert.deepEqual(extractPermissionTextsFromMarkup(html), [
+    "This application will receive your GitHub ID, your GitHub Copilot Chat session messages, and metadata from GitHub.",
+  ]);
 });
