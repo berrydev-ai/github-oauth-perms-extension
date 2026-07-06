@@ -10,6 +10,8 @@
 
   const CACHE_PREFIX = "ghperm:v2:";
   const APPLICATIONS_PATH = "/settings/applications";
+  const FEATURE_ENABLED_KEY = "ghpermEnabled";
+  const DEFAULT_ENABLED = true;
   const PERMISSION_ITEM_CLASS = "p-0 listgroup-item border-0";
 
   const normalizeText = (text) => text.replace(/\s+/g, " ").trim();
@@ -17,6 +19,38 @@
   const unique = (items) => [...new Set(items.map(normalizeText).filter(Boolean))];
 
   const isApplicationsPath = (pathname) => pathname === APPLICATIONS_PATH;
+
+  const storageApi = () => {
+    if (typeof chrome === "undefined") return null;
+    return chrome.storage?.sync || null;
+  };
+
+  const isChromeRuntimeError = () =>
+    typeof chrome !== "undefined" && Boolean(chrome.runtime?.lastError);
+
+  /**
+   * Reads whether inline permissions should run.
+   * @returns {Promise<boolean>} Whether the feature is enabled.
+   */
+  function featureEnabled() {
+    return new Promise((resolve) => {
+      const storage = storageApi();
+      if (!storage) {
+        resolve(DEFAULT_ENABLED);
+        return;
+      }
+
+      storage.get({ [FEATURE_ENABLED_KEY]: DEFAULT_ENABLED }, (items) => {
+        if (isChromeRuntimeError()) {
+          console.error("[ghperm] Could not read settings", chrome.runtime.lastError);
+          resolve(DEFAULT_ENABLED);
+          return;
+        }
+
+        resolve(items[FEATURE_ENABLED_KEY] !== false);
+      });
+    });
+  }
 
   const decodeHtmlEntities = (text) => {
     if (typeof document !== "undefined") {
@@ -212,11 +246,21 @@
     box.replaceChildren(makePermissionItem(message));
   }
 
+  function clearRenderedPermissions() {
+    document.querySelectorAll("[data-ghperm-block]").forEach((block) => block.remove());
+    document.querySelectorAll("[data-ghperm-done]").forEach((row) => {
+      delete row.dataset.ghpermDone;
+    });
+  }
+
   if (typeof module !== "undefined" && module.exports) {
     module.exports = {
       APPLICATIONS_PATH,
+      DEFAULT_ENABLED,
+      FEATURE_ENABLED_KEY,
       PERMISSION_ITEM_CLASS,
       extractPermissionTextsFromMarkup,
+      featureEnabled,
       isApplicationsPath,
       parsePermissions,
     };
@@ -228,6 +272,10 @@
   let queued = false;
   async function process() {
     if (!isApplicationsPath(location.pathname)) return;
+    if (!(await featureEnabled())) {
+      clearRenderedPermissions();
+      return;
+    }
     if (running) {
       queued = true;
       return;
@@ -271,5 +319,15 @@
   document.addEventListener("turbo:render", debouncedRun);
   document.addEventListener("turbo:frame-load", debouncedRun);
   document.addEventListener("pjax:end", debouncedRun);
+  if (typeof chrome !== "undefined" && chrome.storage?.onChanged) {
+    chrome.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName !== "sync" || !changes[FEATURE_ENABLED_KEY]) return;
+      if (changes[FEATURE_ENABLED_KEY].newValue === false) {
+        clearRenderedPermissions();
+        return;
+      }
+      debouncedRun();
+    });
+  }
   new MutationObserver(debouncedRun).observe(document.body, { childList: true, subtree: true });
 })();

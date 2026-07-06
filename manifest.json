@@ -3,7 +3,11 @@
   "name": "GitHub OAuth Apps — Inline Permissions",
   "version": "1.0.0",
   "description": "Shows each Authorized OAuth App's permissions (scopes) inline on the GitHub applications settings page.",
+  "permissions": ["storage"],
   "host_permissions": ["https://github.com/*"],
+  "action": {
+    "default_popup": "popup.html"
+  },
   "content_scripts": [
     {
       "matches": ["https://github.com/settings/*"],

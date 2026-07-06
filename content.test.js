@@ -3,6 +3,8 @@ const test = require("node:test");
 
 const {
   APPLICATIONS_PATH,
+  DEFAULT_ENABLED,
+  FEATURE_ENABLED_KEY,
   PERMISSION_ITEM_CLASS,
   extractPermissionTextsFromMarkup,
   isApplicationsPath,
@@ -18,6 +20,18 @@ test("manifest loads the script across settings pages for Turbo navigation", () 
   const manifest = require("./manifest.json");
 
   assert.deepEqual(manifest.content_scripts[0].matches, ["https://github.com/settings/*"]);
+});
+
+test("manifest declares popup and storage permission for the feature toggle", () => {
+  const manifest = require("./manifest.json");
+
+  assert.deepEqual(manifest.permissions, ["storage"]);
+  assert.equal(manifest.action.default_popup, "popup.html");
+});
+
+test("feature toggle defaults to enabled", () => {
+  assert.equal(FEATURE_ENABLED_KEY, "ghpermEnabled");
+  assert.equal(DEFAULT_ENABLED, true);
 });
 
 test("permission rows use GitHub's no-border utility", () => {

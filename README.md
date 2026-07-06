@@ -17,6 +17,11 @@ displays the permissions. It never revokes or changes anything.
 4. Go to <https://github.com/settings/applications> and reload.
    Each app row will show its permissions beneath the "Owned by …" line.
 
+## Enable or disable
+
+Click the extension icon and use **Show permissions** to turn the inline permissions
+list on or off without disabling the whole extension.
+
 ## What the markers mean
 
 - `<permission>` - a granted permission shown with GitHub's check icon.
