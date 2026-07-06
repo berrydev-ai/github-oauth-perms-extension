@@ -13,12 +13,33 @@
   const FEATURE_ENABLED_KEY = "ghpermEnabled";
   const DEFAULT_ENABLED = true;
   const PERMISSION_ITEM_CLASS = "p-0 listgroup-item border-0";
+  const DANGEROUS_PERMISSION_ITEM_CLASS = `${PERMISSION_ITEM_CLASS} color-fg-danger text-bold`;
+  const DANGEROUS_PERMISSION_PATTERNS = [
+    /private repositor/i,
+    /full control/i,
+    /\bdelete\b/i,
+    /\badmin\b/i,
+    /org(?:anization)?|team/i,
+    /workflow|github action/i,
+    /webhook/i,
+    /ssh key|gpg key|deploy key|public key/i,
+    /package/i,
+    /personal access token/i,
+  ];
 
   const normalizeText = (text) => text.replace(/\s+/g, " ").trim();
 
   const unique = (items) => [...new Set(items.map(normalizeText).filter(Boolean))];
 
   const isApplicationsPath = (pathname) => pathname === APPLICATIONS_PATH;
+
+  /**
+   * Checks whether a permission label should be visibly marked as risky.
+   * @param {string} permission - Permission label from GitHub.
+   * @returns {boolean} Whether the permission is dangerous.
+   */
+  const isDangerousPermission = (permission) =>
+    DANGEROUS_PERMISSION_PATTERNS.some((pattern) => pattern.test(permission));
 
   const storageApi = () => {
     if (typeof chrome === "undefined") return null;
@@ -213,10 +234,30 @@
     return svg;
   };
 
+  const makeAlertIcon = () => {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("data-component", "Octicon");
+    svg.setAttribute("class", "octicon octicon-alert color-fg-danger mr-1");
+    svg.setAttribute("viewBox", "0 0 16 16");
+    svg.setAttribute("version", "1.1");
+    svg.setAttribute("width", "16");
+    svg.setAttribute("height", "16");
+    svg.setAttribute("aria-hidden", "true");
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute(
+      "d",
+      "M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z",
+    );
+    svg.appendChild(path);
+    return svg;
+  };
+
   const makePermissionItem = (text) => {
+    const dangerous = isDangerousPermission(text);
     const item = document.createElement("div");
-    item.className = PERMISSION_ITEM_CLASS;
-    item.append(makeCheckIcon(), document.createTextNode(" " + text));
+    item.className = dangerous ? DANGEROUS_PERMISSION_ITEM_CLASS : PERMISSION_ITEM_CLASS;
+    item.append(dangerous ? makeAlertIcon() : makeCheckIcon(), document.createTextNode(" " + text));
     return item;
   };
 
@@ -257,11 +298,13 @@
     module.exports = {
       APPLICATIONS_PATH,
       DEFAULT_ENABLED,
+      DANGEROUS_PERMISSION_ITEM_CLASS,
       FEATURE_ENABLED_KEY,
       PERMISSION_ITEM_CLASS,
       extractPermissionTextsFromMarkup,
       featureEnabled,
       isApplicationsPath,
+      isDangerousPermission,
       parsePermissions,
     };
   }

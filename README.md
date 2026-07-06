@@ -25,6 +25,8 @@ list on or off without disabling the whole extension.
 ## What the markers mean
 
 - `<permission>` - a granted permission shown with GitHub's check icon.
+- Red warning rows - permissions that can expose private repositories, org/team data,
+  workflows, admin/delete abilities, keys, packages, webhooks, or tokens.
 
 ## Notes & tuning
 

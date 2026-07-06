@@ -4,10 +4,12 @@ const test = require("node:test");
 const {
   APPLICATIONS_PATH,
   DEFAULT_ENABLED,
+  DANGEROUS_PERMISSION_ITEM_CLASS,
   FEATURE_ENABLED_KEY,
   PERMISSION_ITEM_CLASS,
   extractPermissionTextsFromMarkup,
   isApplicationsPath,
+  isDangerousPermission,
 } = require("./content");
 
 test("content script runs only on the OAuth applications path", () => {
@@ -36,6 +38,16 @@ test("feature toggle defaults to enabled", () => {
 
 test("permission rows use GitHub's no-border utility", () => {
   assert.equal(PERMISSION_ITEM_CLASS, "p-0 listgroup-item border-0");
+  assert.equal(DANGEROUS_PERMISSION_ITEM_CLASS, "p-0 listgroup-item border-0 color-fg-danger text-bold");
+});
+
+test("detects dangerous permission labels", () => {
+  assert.equal(isDangerousPermission("Full control of private repositories"), true);
+  assert.equal(isDangerousPermission("Update github action workflows"), true);
+  assert.equal(isDangerousPermission("Read org and team membership, read org projects"), true);
+  assert.equal(isDangerousPermission("Delete repositories"), true);
+  assert.equal(isDangerousPermission("Access user email addresses (read-only)"), false);
+  assert.equal(isDangerousPermission("Read all user profile data"), false);
 });
 
 test("extracts the exact Heroku permission text from the OAuth detail page", () => {
