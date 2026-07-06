@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="GitHub app permissions icon">
+  <rect width="128" height="128" rx="28" fill="#0d1117"/>
+  <path d="M64 20 98 34v25c0 23-13 40-34 49-21-9-34-26-34-49V34l34-14Z" fill="#2f81f7"/>
+  <path d="M48 64.5 59 75l23-25" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="97" cy="91" r="19" fill="#f85149"/>
+  <path d="M97 79v16" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="97" cy="102" r="4" fill="#fff"/>
+</svg>

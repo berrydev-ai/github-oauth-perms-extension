@@ -1,4 +1,4 @@
-# GitHub Authorized Apps — Inline Permissions
+# GitHub Authorized Apps - Inline Permissions
 
 A tiny Chrome/Arc extension that augments **Settings → Applications** so authorized
 OAuth apps and authorized GitHub apps show their **permissions inline**.
@@ -14,7 +14,8 @@ displays the permissions. It never revokes or changes anything.
 2. Turn on **Developer mode** (top-right toggle).
 3. Click **Load unpacked** and select this folder
    (`github-oauth-perms-extension`, the one containing `manifest.json`).
-4. Go to <https://github.com/settings/applications> and reload.
+4. Go to <https://github.com/settings/applications> or
+   <https://github.com/settings/apps/authorizations> and reload.
    Each app row will show its permissions beneath the "Owned by …" line.
 
 ## Enable or disable
@@ -33,6 +34,27 @@ lists on or off without disabling the whole extension.
 - Results are cached per browser session, so paginating back and forth is fast.
 - GitHub occasionally changes the markup of the app detail page. If a row shows
   *"Could not load permissions"* or the text looks like navigation junk, the permissions
-  parser (`parsePermissions` in `content.js`) needs a selector tweak — send me a copy of an
-  app's detail-page HTML and I'll adjust it.
+  parser (`parsePermissions` in `content.js`) likely needs a selector tweak.
 - Works in any Chromium browser (Chrome, Arc, Edge, Brave).
+
+## Development
+
+```sh
+npm test
+npm run check
+npm run package
+```
+
+The release ZIP is written to `dist/`.
+
+## Privacy
+
+See [PRIVACY.md](PRIVACY.md).
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+MIT. See [LICENSE](LICENSE).

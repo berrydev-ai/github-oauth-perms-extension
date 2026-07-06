@@ -1,4 +1,5 @@
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
 const test = require("node:test");
 
 const {
@@ -32,7 +33,24 @@ test("manifest declares popup and storage permission for the feature toggle", ()
   const manifest = require("./manifest.json");
 
   assert.deepEqual(manifest.permissions, ["storage"]);
+  assert.deepEqual(manifest.host_permissions, ["https://github.com/*"]);
   assert.equal(manifest.action.default_popup, "popup.html");
+  assert.equal(manifest.action.default_title, "GitHub Authorized Apps Permissions");
+  assert.equal(manifest.short_name, "GitHub App Perms");
+  assert.equal(manifest.icons["128"], "assets/icon-128.png");
+  assert.equal(manifest.action.default_icon["16"], "assets/icon-16.png");
+});
+
+test("manifest icon files exist", () => {
+  const manifest = require("./manifest.json");
+  const iconPaths = new Set([
+    ...Object.values(manifest.icons),
+    ...Object.values(manifest.action.default_icon),
+  ]);
+
+  for (const iconPath of iconPaths) {
+    assert.equal(fs.existsSync(iconPath), true, `${iconPath} should exist`);
+  }
 });
 
 test("feature toggle defaults to enabled", () => {

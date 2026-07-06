@@ -1,0 +1,12 @@
+{
+  "name": "github-authorized-apps-inline-permissions",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Shows Authorized OAuth App and GitHub App permissions inline on the GitHub applications settings page.",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test content.test.js",
+    "check": "node --check content.js && node --check popup.js && node -e \"JSON.parse(require('fs').readFileSync('manifest.json', 'utf8'))\"",
+    "package": "scripts/package.sh"
+  }
+}

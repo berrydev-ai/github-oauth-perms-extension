@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 280" role="img" aria-label="Extension promotional tile">
+  <rect width="440" height="280" fill="#f6f8fa"/>
+  <rect x="48" y="46" width="344" height="188" rx="18" fill="#ffffff" stroke="#d0d7de"/>
+  <circle cx="97" cy="96" r="24" fill="#0d1117"/>
+  <rect x="142" y="78" width="154" height="14" rx="7" fill="#0969da"/>
+  <rect x="142" y="106" width="218" height="10" rx="5" fill="#57606a"/>
+  <path d="M148 151l10 10 21-24" fill="none" stroke="#1a7f37" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="194" y="144" width="124" height="12" rx="6" fill="#57606a"/>
+  <path d="M152 190 164 169l12 21Z" fill="none" stroke="#cf222e" stroke-width="6" stroke-linejoin="round"/>
+  <circle cx="164" cy="184" r="2.5" fill="#cf222e"/>
+  <path d="M164 176v5" stroke="#cf222e" stroke-width="4" stroke-linecap="round"/>
+  <rect x="194" y="181" width="154" height="12" rx="6" fill="#cf222e"/>
+</svg>

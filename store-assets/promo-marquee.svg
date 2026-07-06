@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 560" role="img" aria-label="Extension marquee promotional tile">
+  <rect width="1400" height="560" fill="#f6f8fa"/>
+  <rect x="170" y="92" width="1060" height="376" rx="28" fill="#ffffff" stroke="#d0d7de" stroke-width="2"/>
+  <circle cx="288" cy="196" r="46" fill="#0d1117"/>
+  <rect x="382" y="156" width="338" height="30" rx="15" fill="#0969da"/>
+  <rect x="382" y="214" width="620" height="18" rx="9" fill="#57606a"/>
+  <path d="M397 308l24 24 54-62" fill="none" stroke="#1a7f37" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="532" y="292" width="322" height="24" rx="12" fill="#57606a"/>
+  <path d="M407 418 438 365l31 53Z" fill="none" stroke="#cf222e" stroke-width="14" stroke-linejoin="round"/>
+  <circle cx="438" cy="403" r="7" fill="#cf222e"/>
+  <path d="M438 384v12" stroke="#cf222e" stroke-width="10" stroke-linecap="round"/>
+  <rect x="532" y="394" width="448" height="24" rx="12" fill="#cf222e"/>
+  <rect x="1014" y="116" width="130" height="130" rx="28" fill="#0d1117"/>
+  <path d="M1079 140 1116 155v28c0 25-14 44-37 54-23-10-37-29-37-54v-28l37-15Z" fill="#2f81f7"/>
+  <path d="M1061 188l13 13 29-34" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
