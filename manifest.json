@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "GitHub OAuth Apps — Inline Permissions",
+  "version": "1.0.0",
+  "description": "Shows each Authorized OAuth App's permissions (scopes) inline on the GitHub applications settings page.",
+  "host_permissions": ["https://github.com/*"],
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/settings/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
