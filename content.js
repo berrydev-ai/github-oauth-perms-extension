@@ -1,7 +1,7 @@
 /*
- * GitHub OAuth Apps — Inline Permissions (content script)
- * Runs on https://github.com/settings/applications*
- * For each Authorized OAuth App row, fetches the app's detail page
+ * GitHub Authorized Apps — Inline Permissions (content script)
+ * Runs on GitHub's application settings tabs.
+ * For each Authorized App row, fetches the app's detail page
  * (same-origin, using your session) and injects its Permissions list.
  * READ-ONLY: it never revokes or changes anything.
  */
@@ -10,6 +10,8 @@
 
   const CACHE_PREFIX = "ghperm:v3:";
   const APPLICATIONS_PATH = "/settings/applications";
+  const AUTHORIZED_GITHUB_APPS_PATH = "/settings/apps/authorizations";
+  const SUPPORTED_APPLICATIONS_PATHS = [APPLICATIONS_PATH, AUTHORIZED_GITHUB_APPS_PATH];
   const FEATURE_ENABLED_KEY = "ghpermEnabled";
   const DEFAULT_ENABLED = true;
   const PERMISSION_ITEM_CLASS = "p-0 listgroup-item border-0";
@@ -33,7 +35,12 @@
 
   const unique = (items) => [...new Set(items.map(normalizeText).filter(Boolean))];
 
-  const isApplicationsPath = (pathname) => pathname === APPLICATIONS_PATH;
+  /**
+   * Checks whether the current settings page has authorized app rows to enrich.
+   * @param {string} pathname - Current browser path.
+   * @returns {boolean} Whether the content script should run.
+   */
+  const isApplicationsPath = (pathname) => SUPPORTED_APPLICATIONS_PATHS.includes(pathname);
 
   /**
    * Checks whether a permission label should be visibly marked as risky.

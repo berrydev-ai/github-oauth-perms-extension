@@ -13,9 +13,10 @@ const {
   isDangerousPermission,
 } = require("./content");
 
-test("content script runs only on the OAuth applications path", () => {
+test("content script runs on the supported applications paths", () => {
   assert.equal(APPLICATIONS_PATH, "/settings/applications");
   assert.equal(isApplicationsPath("/settings/applications"), true);
+  assert.equal(isApplicationsPath("/settings/apps/authorizations"), true);
   assert.equal(isApplicationsPath("/settings/profile"), false);
 });
 
