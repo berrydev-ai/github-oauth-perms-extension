@@ -69,7 +69,7 @@ The extension does not collect, sell, share, or transmit user data. It reads Git
 
 Use the repository `PRIVACY.md` URL after publishing the repository:
 
-`https://github.com/berrydev-ai/github-oauth-perms-extension/blob/main/PRIVACY.md`
+`https://github.com/berrydev-ai/github-authorized-apps-inline-permissions/blob/main/PRIVACY.md`
 
 ## Required assets
 

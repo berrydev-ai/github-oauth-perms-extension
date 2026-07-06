@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "GitHub Authorized Apps — Inline Permissions",
+  "name": "GitHub Authorized Apps - Inline Permissions",
   "short_name": "GitHub App Perms",
   "version": "1.0.0",
   "description": "Shows Authorized OAuth App and GitHub App permissions inline on the GitHub applications settings page.",

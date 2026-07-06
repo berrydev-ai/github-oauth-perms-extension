@@ -13,7 +13,7 @@ displays the permissions. It never revokes or changes anything.
    - Arc: `arc://extensions` (or Chrome menu → Extensions)
 2. Turn on **Developer mode** (top-right toggle).
 3. Click **Load unpacked** and select this folder
-   (`github-oauth-perms-extension`, the one containing `manifest.json`).
+   (`github-authorized-apps-inline-permissions`, the one containing `manifest.json`).
 4. Go to <https://github.com/settings/applications> or
    <https://github.com/settings/apps/authorizations> and reload.
    Each app row will show its permissions beneath the "Owned by …" line.

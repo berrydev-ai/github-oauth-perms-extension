@@ -35,6 +35,7 @@ test("manifest declares popup and storage permission for the feature toggle", ()
   assert.deepEqual(manifest.permissions, ["storage"]);
   assert.deepEqual(manifest.host_permissions, ["https://github.com/*"]);
   assert.equal(manifest.action.default_popup, "popup.html");
+  assert.equal(manifest.name, "GitHub Authorized Apps - Inline Permissions");
   assert.equal(manifest.action.default_title, "GitHub Authorized Apps Permissions");
   assert.equal(manifest.short_name, "GitHub App Perms");
   assert.equal(manifest.icons["128"], "assets/icon-128.png");

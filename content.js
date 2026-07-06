@@ -1,5 +1,5 @@
 /*
- * GitHub Authorized Apps — Inline Permissions (content script)
+ * GitHub Authorized Apps - Inline Permissions (content script)
  * Runs on GitHub's application settings tabs.
  * For each Authorized App row, fetches the app's detail page
  * (same-origin, using your session) and injects its Permissions list.
