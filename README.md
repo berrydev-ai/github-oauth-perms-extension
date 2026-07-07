@@ -6,6 +6,36 @@ OAuth apps and authorized GitHub apps show their **permissions inline**.
 It is **read-only**: it fetches each app's own detail page using your logged-in session and
 displays the permissions. It never revokes or changes anything.
 
+## Screenshots
+
+<details>
+<summary>Authorized OAuth Apps</summary>
+
+_URL: [https://github.com/settings/applications](https://github.com/settings/applications)_
+
+### GitHub page
+
+![GitHub OAuth apps page](docs/screenshots/oauth-apps.png)
+
+### With inline permissions
+
+![OAuth apps with inline permissions](docs/screenshots/extension-oauth-apps.png)
+
+</details>
+
+<details>
+<summary>Authorized GitHub Apps</summary>
+
+_URL: [https://github.com/settings/apps/authorizations](https://github.com/settings/apps/authorizations)_
+
+![GitHub apps authorizations page](docs/screenshots/github-apps.png)
+
+### With inline permissions
+
+![GitHub apps with inline permissions](docs/screenshots/extension-github-apps.png)
+
+</details>
+
 ## Install (Load unpacked)
 
 1. Open your browser's extensions page:
